@@ -6,8 +6,10 @@ import commands
 
 from distutils.core import setup
 
+
 class ExecError(Exception):
     pass
+
 
 def _getoutput(command):
     status, output = commands.getstatusoutput(command)
@@ -15,15 +17,17 @@ def _getoutput(command):
         raise ExecError()
     return output
 
+
 def get_version():
     if not os.path.exists("debian/changelog"):
         return None
 
     output = _getoutput("dpkg-parsechangelog")
-    version = [ line.split(" ")[1]
-                for line in output.split("\n")
-                if line.startswith("Version:") ][0]
+    version = [line.split(" ")[1]
+               for line in output.split("\n")
+               if line.startswith("Version:")][0]
     return version
+
 
 def parse_control(control):
     """parse control fields -> dict"""
@@ -39,6 +43,7 @@ def parse_control(control):
 
     return d
 
+
 def parse_email(email):
     m = re.match(r'(.*)\s*<(.*)>', email.strip())
     if m:
@@ -49,13 +54,14 @@ def parse_email(email):
 
     return name.strip(), address.strip()
 
+
 def main():
     control_fields = parse_control(file("debian/control").read())
     maintainer = control_fields['Maintainer']
     maintainer_name, maintainer_email = parse_email(maintainer)
 
-    setup(packages = [''],
-          package_dir = {'': 'pylib'},
+    setup(packages=[''],
+          package_dir={'': 'pylib'},
 
           # non-essential meta-data
           name=control_fields['Source'],
@@ -64,7 +70,6 @@ def main():
           maintainer_email=maintainer_email,
           description=control_fields['Description'])
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()
-
-

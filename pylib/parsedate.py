@@ -10,8 +10,10 @@
 import re
 import datetime
 
+
 class DateError(Exception):
     pass
+
 
 def parsedate(datestr):
     """Supported date formats:
@@ -54,7 +56,7 @@ def parsedate(datestr):
         m = re.match(r'(\d\d?)-(\d\d?)(?:-(\d\d\d?\d?))?$', datestr)
         if not m:
             m = re.match(r'(\d\d?)\.(\d\d?)(?:\.(\d\d\d?\d?))?$', datestr)
-        
+
     if m:
         day = int(m.group(1))
         month = int(m.group(2))
@@ -66,14 +68,13 @@ def parsedate(datestr):
                 year += 2000
 
         return datetime.date(year, month, day)
-    
 
     m = re.match(r'(\d\d\d\d)/(\d\d?)(?:/(\d\d?))?$', datestr)
     if not m:
         m = re.match(r'(\d\d\d\d)-(\d\d?)(?:-(\d\d?))?$', datestr)
         if not m:
             m = re.match(r'(\d\d\d\d)\.(\d\d?)(?:\.(\d\d?))?$', datestr)
-            
+
     if m:
         year = int(m.group(1))
         month = int(m.group(2))
@@ -81,12 +82,8 @@ def parsedate(datestr):
             day = int(m.group(3))
         else:
             day = 1
-            
+
         return datetime.date(year, month, day)
 
     raise DateError("illegal date (%s)" % datestr +
                     "\n" + parsedate.__doc__)
-
-
-        
-

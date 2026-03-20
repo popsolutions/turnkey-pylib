@@ -6,6 +6,7 @@ from distutils.core import setup as _setup
 from executil import getoutput, ExecError
 from os.path import *
 
+
 class SetupBase:
     @classmethod
     def setup(cls, **kwargs):
@@ -24,6 +25,7 @@ class SetupBase:
                 packages.append(fname)
 
         return packages
+
 
 class Setup(SetupBase):
     @classmethod
@@ -73,12 +75,13 @@ class Setup(SetupBase):
                 return getoutput("autoversion HEAD")
 
             output = getoutput("dpkg-parsechangelog")
-            version = [ line.split(" ")[1]
-                        for line in output.split("\n")
-                        if line.startswith("Version:") ][0]
+            version = [line.split(" ")[1]
+                       for line in output.split("\n")
+                       if line.startswith("Version:")][0]
             return version
 
         except ExecError:
             return None
+
 
 setup = Setup.setup

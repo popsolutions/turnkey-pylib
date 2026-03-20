@@ -11,6 +11,7 @@ from Tkinter import *
 import threading
 import time
 
+
 class Timeout:
     """class providing timeout dialog, designed to be inherited
 
@@ -55,9 +56,9 @@ class Timeout:
 
         Label(frame1, textvariable=self.countdown).grid(row=2,
                                                         column=0,
-                                                        stick=N+S+E+W)
+                                                        stick=N + S + E + W)
 
-        frame1.grid(row=0, stick=N+E+S+W)
+        frame1.grid(row=0, stick=N + E + S + W)
 
     def _timeout(self):
         """do this when timeout is reached"""
@@ -98,12 +99,13 @@ class Timeout:
 
         return self.selected
 
+
 def test():
     timeout = 5
     title = 'test title'
     text = 'this is test text for the dialog'
     Timeout(timeout, title, text).wait_selection()
 
+
 if __name__ == "__main__":
     test()
-

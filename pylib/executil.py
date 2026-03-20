@@ -19,12 +19,14 @@ from subprocess import Popen, PIPE
 
 mkarg = commands.mkarg
 
+
 class ExecError(Exception):
     """Accessible attributes:
     command	executed command
     exitcode	non-zero exitcode returned by command
     output	error output returned by command
     """
+
     def __init__(self, command, exitcode, output=None):
         Exception.__init__(self, command, exitcode, output)
 
@@ -39,8 +41,10 @@ class ExecError(Exception):
             str += "\n" + self.output
         return str
 
+
 def fmt_command(command, *args):
     return command + " ".join([mkarg(arg) for arg in args])
+
 
 def system(command, *args):
     """Executes <command> with <*args> -> None
@@ -55,6 +59,7 @@ def system(command, *args):
         exitcode = os.WEXITSTATUS(error)
         raise ExecError(command, exitcode)
 
+
 def getoutput(command, *args):
     """Executes <command> with <*args> -> output
     If command returns non-zero exitcode raises ExecError"""
@@ -67,6 +72,7 @@ def getoutput(command, *args):
 
     return output
 
+
 def getoutput_popen(command, input=None):
     """Uses subprocess.Popen to execute <command>, piping <input> into stdin.
     If command returns non-zero exitcode raise ExecError.
@@ -74,9 +80,9 @@ def getoutput_popen(command, input=None):
     Return command output.
     """
 
-    shell=False
+    shell = False
     if isinstance(command, str):
-        shell=True
+        shell = True
 
     child = Popen(command, shell=shell, stdin=PIPE, stdout=PIPE, stderr=PIPE)
 

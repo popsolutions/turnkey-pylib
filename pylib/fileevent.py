@@ -1,19 +1,21 @@
 class Observer:
     def notify(self, subject, event, value):
         pass
-    
+
+
 class FileEventAdaptor:
     """Example usage:
     class MyObserver(Observer):
        def notify(self, obj, event, value):
           print "event '%s': %s" % (event, value)
-      
+
     f = file("/dev/null", "r+")
     f = FileEventAdaptor(f)
     f.addObserver(Observer())
     """
     class Error(Exception):
         pass
+
     def __init__(self, fh):
         self.fh = fh
         self.observers = []
@@ -28,7 +30,7 @@ class FileEventAdaptor:
 
     def delObserversAll(self):
         self.observers = []
-        
+
     def __getattr__(self, attr):
         return getattr(self.fh, attr)
 

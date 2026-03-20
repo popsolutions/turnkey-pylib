@@ -8,8 +8,10 @@
 # License, or (at your option) any later version.
 import subprocess
 
+
 class Error(Exception):
     pass
+
 
 class Ar:
     def __init__(self, path):
@@ -22,11 +24,14 @@ class Ar:
     def extract(self, member):
         return subprocess.check_output(['ar', '-p', self.path, member])
 
+
 def _extract(archive, member):
     return Ar(archive).extract(member)
 
+
 def _list(path):
     return Ar(path).list()
+
 
 extract = _extract
 list = _list

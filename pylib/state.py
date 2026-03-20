@@ -17,15 +17,15 @@ class State:
 
     copy_s = State()
     copy_s.thaw(text)
-    
+
     """
     class Error(Exception):
         pass
-    
+
     from ConfigParser import ConfigParser
     from cStringIO import StringIO
 
-    SECTION_NAME="state"
+    SECTION_NAME = "state"
 
     def freeze(self):
         """
@@ -47,14 +47,19 @@ class State:
         parser = self.ConfigParser()
         parser.readfp(self.StringIO(serialized))
         if not parser.has_section(self.SECTION_NAME):
-            raise self.Error("bad serialized state, missing section '%s'" % self.SECTION_NAME)
+            raise self.Error(
+                "bad serialized state, missing section '%s'" %
+                self.SECTION_NAME)
         for attr in self.__dict__.keys():
             if not parser.has_option(self.SECTION_NAME, attr):
-                raise self.Error("bad serialized state, missing attribute '%s'" % attr)
+                raise self.Error(
+                    "bad serialized state, missing attribute '%s'" %
+                    attr)
 
             attr_type = type(getattr(self, attr))
             setattr(self, attr, attr_type(parser.get(self.SECTION_NAME, attr)))
-    
+
+
 class StateFile(State):
     """
     Base class for an object that maintains its state in a file.
@@ -64,7 +69,7 @@ class StateFile(State):
     """
 
     STATE_FILE = "/path/to/state"
-    
+
     def freeze(self):
         serialized = State.freeze(self)
         file(self.STATE_FILE, "w").write(serialized)

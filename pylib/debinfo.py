@@ -26,8 +26,10 @@ import lzma
 import ar
 from hashstore import HashStore
 
+
 class Error(Exception):
     pass
+
 
 def _init_debinfo_cache():
     home_dir = pwd.getpwuid(os.getuid()).pw_dir
@@ -38,7 +40,9 @@ def _init_debinfo_cache():
 
     return HashStore(debinfo_dir)
 
+
 _cache = _init_debinfo_cache()
+
 
 def _extract_control(path):
     filenames = ar.list(path)
@@ -54,7 +58,7 @@ def _extract_control(path):
 
     _, compression_type = splitext(filename)
     compression_type = compression_type[1:]
-        
+
     control_tar_archive = ar.extract(path, filename)
 
     if compression_type == 'xz':
@@ -65,15 +69,18 @@ def _extract_control(path):
         sys.setdefaultencoding('utf8')
     else:
         fh = BytesIO(control_tar_archive)
-        tar = tarfile.open(filename, mode="r:"+compression_type, fileobj=fh)
+        tar = tarfile.open(filename, mode="r:" + compression_type, fileobj=fh)
 
     reload(sys)
     sys.setdefaultencoding('utf8')
 
     try:
-        return tar.extractfile("./control").read().encode('ascii', errors='replace')
+        return tar.extractfile(
+            "./control").read().encode('ascii', errors='replace')
     except KeyError:
-        return tar.extractfile("control").read().encode('ascii', errors='replace')
+        return tar.extractfile("control").read().encode(
+            'ascii', errors='replace')
+
 
 def get_key(path):
     """calculate the debinfo key for a Debian binary package at <path>"""
@@ -84,10 +91,12 @@ def get_key(path):
             break
     return md5(ar.extract(path, filename)).hexdigest()
 
+
 def get_control_by_key(key):
     """get control data from debinfo cache by <key> -> str"""
     return _cache.get(key)
-    
+
+
 def get_control_by_path(path, usecache=True):
     """get control data from a Debian binary package at <path> -> str (cached)
 
@@ -96,7 +105,7 @@ def get_control_by_path(path, usecache=True):
     """
     if not usecache:
         return _extract_control(path)
-        
+
     key = get_key(path)
     control = _cache.get(key)
     if control is None:
@@ -104,6 +113,7 @@ def get_control_by_path(path, usecache=True):
         _cache.set(key, control)
 
     return control
+
 
 def parse_control(control):
     """parse control fields -> dict"""
@@ -123,6 +133,7 @@ def parse_control(control):
             val = line.strip()
             d[key] = d[key].strip() + b' ' + val
     return d
+
 
 def get_control_fields(path):
     """convenience function which extracts control fields from a Debian binary package -> dict"""
