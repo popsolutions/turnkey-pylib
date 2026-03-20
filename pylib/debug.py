@@ -64,7 +64,7 @@ import types
 import os
 
 def _fmt(val, trunc):
-    r = `val`
+    r = repr(val)
     if len(r) > trunc:
         end = r[-1]
 
@@ -84,7 +84,7 @@ def trace(*args, **kwargs):
     return decorator
 
 def _default_callback(s):
-    print "TRACE %d: %s" % (os.getpid(), s)
+    print("TRACE %d: %s" % (os.getpid(), s))
 
 trace.callback = _default_callback
 

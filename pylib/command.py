@@ -23,7 +23,7 @@ from fifobuffer import FIFOBuffer
 from fileevent import *
 
 from commands import mkarg
-from StringIO import StringIO
+from io import StringIO
 
 def fmt_argv(argv):
     if not argv:
@@ -106,7 +106,7 @@ class FileEnhancedRead:
             set_blocking(fd, False)
             try:
                 bytes = self.fh.read(size)
-            except IOError, e:
+            except IOError as e:
                 if e.errno != errno.EAGAIN:
                     raise
             finally:
@@ -167,7 +167,7 @@ class Command(object):
 
         def _dprint(self, event, msg):
             if self.debug:
-                print >> sys.stderr, "# EVENT '%s':\n%s" % (event, msg)
+                print("# EVENT '%s':\n%s" % (event, msg), file=sys.stderr)
 
         def notify(self, subject, event, val):
             if event in ('read', 'readline'):
@@ -203,7 +203,7 @@ class Command(object):
         
         self._output = FIFOBuffer()
         self._dprint("# command started (pid=%d, pty=%s): %s" % (self._child.pid,
-                                                               `pty`,
+                                                               repr(pty),
                                                                cmd))
 
     def __del__(self):
@@ -216,7 +216,7 @@ class Command(object):
         
     def _dprint(self, msg):
         if self._debug:
-            print >> sys.stderr, msg
+            print(msg, file=sys.stderr)
         
     def terminate(self, gracetime=0, sig=signal.SIGTERM):
         """terminate command. kills command with 'sig', then sleeps for 'gracetime', before sending SIGKILL
@@ -234,8 +234,8 @@ class Command(object):
 
             try:
                 os.kill(pid, sig)
-            except OSError, e:
-                if e[0] != errno.EPERM or \
+            except OSError as e:
+                if e.args[0] != errno.EPERM or \
                    not self._child.pty or \
                    not self.wait(timeout=6, poll_interval=0.1):
                     raise
@@ -373,7 +373,7 @@ class Command(object):
         # compile all patterns into re objects, but keep the original pattern object
         # so we can return it to the user when we match (friendlier interface)
         re_type = type(re.compile(""))
-        for i in xrange(len(patterns)):
+        for i in range(len(patterns)):
             if type(patterns[i]) is not re_type:
                 patterns[i] = (re.compile(patterns[i]), patterns[i])
             else:
@@ -477,7 +477,7 @@ class Command(object):
         return sio.getvalue()
 
     def __repr__(self):
-        return "Command(%s)" % `self._cmd`
+        return "Command(%s)" % repr(self._cmd)
 
     def __str__(self):
         if isinstance(self._cmd, str):

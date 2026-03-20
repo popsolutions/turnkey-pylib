@@ -82,8 +82,8 @@ import os
 import sys
 
 import traceback
-import cPickle as pickle
-import new
+import pickle
+import types
 
 class Error(Exception):
     pass
@@ -101,7 +101,7 @@ def forked_func(func, print_traceback=False):
 
             try:
                 ret = func(*args, **kws)
-            except Exception, e:
+            except Exception as e:
                 if print_traceback:
                     traceback.print_exc(file=sys.stderr)
                 pickle.dump(e, w_fh)
@@ -165,7 +165,7 @@ class ObjProxyServer(ObjProxyBase):
             try:
                 ret = method(self, *args, **kws)
                 pickle.dump((False, ret), self.w)
-            except Exception, e:
+            except Exception as e:
                 if self.print_traceback:
                     if not isinstance(e, AttributeError):
                         traceback.print_exc(file=sys.stderr)
@@ -244,8 +244,7 @@ class ObjProxyClient(ObjProxyBase, object):
         def unbound_method(self, *args, **kws):
             return self._op_call(attrname, args, kws)
 
-        method = new.instancemethod(unbound_method,
-                                    self, self.__class__)
+        method = types.MethodType(unbound_method, self)
         object.__setattr__(self, attrname, method)
         return method
     
@@ -284,8 +283,8 @@ def test():
         return a + b
 
     forkedadd = forked_func(add)
-    print ">>> forkedadd(1, 1)"
-    print forkedadd(1, 1)
+    print(">>> forkedadd(1, 1)")
+    print(forkedadd(1, 1))
 
     class Adder:
         def add(self, a, b):
@@ -293,11 +292,11 @@ def test():
 
     ForkedAdder = forked_constructor(Adder)
 
-    print ">>> instance = ForkedAdder()"
+    print(">>> instance = ForkedAdder()")
     instance = ForkedAdder()
 
-    print ">>> instance.add(1, 1)"
-    print instance.add(1, 1)
+    print(">>> instance.add(1, 1)")
+    print(instance.add(1, 1))
 
     class PidGetter:
         def getpid(self):
@@ -308,8 +307,8 @@ def test():
     def dummy():
         return pg
     forkedpg = forked_constructor(dummy)()
-    print "pg.getpid() = %d" % pg.getpid()
-    print "forkedpg.getpid() = %d" % forkedpg.getpid()
+    print("pg.getpid() = %d" % pg.getpid())
+    print("forkedpg.getpid() = %d" % forkedpg.getpid())
     assert pg.getpid() != forkedpg.getpid()
     
     class Attr(object):
@@ -323,16 +322,16 @@ def test():
             self.attr = attr
 
     attr = forked_constructor(Attr)(666)
-    print ">>> attr.attr"
-    print attr.attr
+    print(">>> attr.attr")
+    print(attr.attr)
 
     attr.setattr(111)
     assert attr.attr == 111
 
-    print ">>> attr.attr = 222"
+    print(">>> attr.attr = 222")
     attr.attr = 222
-    print ">>> attr.getattr()"
-    print attr.getattr()
+    print(">>> attr.getattr()")
+    print(attr.getattr())
     assert attr.getattr() == 222
 
 if __name__=="__main__":

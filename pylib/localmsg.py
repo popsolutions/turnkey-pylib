@@ -30,6 +30,8 @@ class Server:
     def deliver(self, msg):
         """waits for connection and delivers message"""
         (c, addr) = self._sock.accept()
+        if isinstance(msg, str):
+            msg = msg.encode('utf-8')
         c.sendall(msg)
         c.close()
 
@@ -50,18 +52,17 @@ class Client:
         sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         try:
             sock.connect(self._path)
-        except socket.error, e:
-            raise Error("can't connect to %s: %s" % (self._path, e[1]))
+        except socket.error as e:
+            raise Error("can't connect to %s: %s" % (self._path, e.args[1] if len(e.args) > 1 else str(e)))
 
-        fh = sock.makefile("r", 0)
+        fh = sock.makefile("rb", 0)
         msg = fh.read()
         fh.close()
         sock.close()
 
-        return msg
+        return msg.decode('utf-8')
 
 def receive(path=SOCKPATH):
     """receive message (function interface)"""
     c = Client(path)
     return c.receive()
-

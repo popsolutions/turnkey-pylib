@@ -19,7 +19,7 @@ class Lock:
         self.locked = False
 
     def lock(self, nonblock=None):
-        self.fh = file(self.filename, "w+")
+        self.fh = open(self.filename, "w+")
 
         if nonblock is None:
             nonblock = self.nonblock 
@@ -45,7 +45,7 @@ def _test():
     import time
     
     def sleep(n):
-        print "sleeping for %d seconds" % n
+        print("sleeping for %d seconds" % n)
         time.sleep(n)
 
     l = Lock("lock.lock", nonblock=False)

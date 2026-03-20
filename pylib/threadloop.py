@@ -36,12 +36,12 @@ class _ThreadLoop(threading.Thread):
             func = self._func
 
         for ret in iter(func, False):
-            if self._done.isSet():
+            if self._done.is_set():
                 break
 
             # special treatment for generator functions
-            if hasattr(ret, 'next'): 
-                return self.run(ret.next)
+            if hasattr(ret, '__next__'): 
+                return self.run(ret.__next__)
 
         self._done.set()
 
@@ -51,12 +51,12 @@ class _ThreadLoop(threading.Thread):
             self.join(1)
             self._done.set()
 
-            if not self.isAlive():
+            if not self.is_alive():
                 return
 
     @property
     def done(self):
-        return self._done.isSet()
+        return self._done.is_set()
 
 class ThreadLoop(object):
     def __init__(self, func):
@@ -76,33 +76,33 @@ class ThreadLoop(object):
 
 def test():
     def hello1():
-        print "hello1"
+        print("hello1")
         time.sleep(1)
         return True
 
     def hello2():
         while True:
-            print "hello2"
+            print("hello2")
             time.sleep(1)
             yield True
 
     def hello3():
         for i in range(3):
-            print "hello3 %d" % i
+            print("hello3 %d" % i)
             time.sleep(1)
             yield True
 
-        print "done"
+        print("done")
 
     # not Ctrl-C safe (will deadlock)
-    print "NOT CTRL-C SAFE:"
+    print("NOT CTRL-C SAFE:")
     loop = ThreadLoop(hello1)
     time.sleep(3)
     loop = None
 
     # this is Ctrl-C safe
-    print
-    print "CTRL-C SAFE:"
+    print()
+    print("CTRL-C SAFE:")
     loop = ThreadLoop(hello1)
     try:
         time.sleep(3)

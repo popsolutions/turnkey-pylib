@@ -40,8 +40,8 @@ class FixedMap(dict):
         fields = self.FIELDS
 
         if len(args) > len(fields):
-            raise self.Error("more values (%s) than fields (%s)" % (`args`,
-                                                                    `fields`))
+            raise self.Error("more values (%s) than fields (%s)" % (repr(args),
+                                                                    repr(fields)))
 
         for i in range(len(args)):
             self[fields[i]] = args[i]
@@ -59,7 +59,7 @@ class FixedMap(dict):
     def __getattr__(self, name):
         try:
             return self[name]
-        except KeyError, e:
+        except KeyError as e:
             raise AttributeError(e)
 
     def __setattr__(self, name, val):
@@ -77,8 +77,6 @@ class FixedMap(dict):
 
     def keys(self):
         return list(self)
-
-    iterkeys = __iter__
 
     def items(self):
         items = []

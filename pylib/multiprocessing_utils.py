@@ -154,7 +154,7 @@ class Parallelize:
                 if isinstance(executor, Deferred):
                     executor = executor()
                     if not callable(executor):
-                        raise Parallelize.Error("product of deferred executor %s is not callable" % `executor`)
+                        raise Parallelize.Error("product of deferred executor %s is not callable" % repr(executor))
 
                 initialized.set()
             except cls.Terminated:
@@ -240,7 +240,7 @@ class Parallelize:
             self.yielded = 0
             return self
 
-        def next(self):
+        def __next__(self):
             finished = False
 
             while True:
@@ -267,7 +267,7 @@ class Parallelize:
     def __init__(self, executors):
         for executor in executors:
             if not callable(executor):
-                raise self.Error("executor %s is not callable" % `executor`)
+                raise self.Error("executor %s is not callable" % repr(executor))
 
         q_input = WaitableQueue()
         q_output = WaitableQueue()
@@ -468,24 +468,24 @@ def test():
     globals()[sleeper.__name__] = sleeper
 
     sleeper = Parallelize([ sleeper ] * 250)
-    print "Allocated children"
+    print("Allocated children")
 
     try:
         for i in range(1000):
             sleeper(1)
 
-        print "Queued parallelized invocations. Ctrl-C to abort!"
+        print("Queued parallelized invocations. Ctrl-C to abort!")
         sleeper.wait()
 
-        print "Finished waiting"
+        print("Finished waiting")
 
     finally:
         aborted = sleeper.stop()
         if aborted:
-            print "len(aborted) = %d" % len(aborted)
-            print "len(aborted) + len(results) = %d" % (len(aborted) + len(sleeper.results))
+            print("len(aborted) = %d" % len(aborted))
+            print("len(aborted) + len(results) = %d" % (len(aborted) + len(sleeper.results)))
 
-        print "len(pool.results) = %d" % len(sleeper.results)
+        print("len(pool.results) = %d" % len(sleeper.results))
 
 def test2():
     class ExampleExecutor:
@@ -500,15 +500,15 @@ def test2():
             #if random.randint(0, 1):
             #    raise Exception
 
-            print "%s.__init__: pid %d" % (self.name, self.pid)
+            print("%s.__init__: pid %d" % (self.name, self.pid))
 
         def __call__(self, *args):
-            print "%s.__call__(%s)" % (self.name, `args`)
+            print("%s.__call__(%s)" % (self.name, repr(args)))
             return args
 
         def __del__(self):
             import os
-            print "%s.__del__: self.pid=%d, os.getpid=%d" % (self.name, self.pid, os.getpid())
+            print("%s.__del__: self.pid=%d, os.getpid=%d" % (self.name, self.pid, os.getpid()))
 
     # pickle doesn't like embedded classes
     globals()[ExampleExecutor.__name__] = ExampleExecutor
@@ -520,15 +520,15 @@ def test2():
 
     p = Parallelize(deferred)
     try:
-        print "len(p.workers) = %d" % len(p.workers)
+        print("len(p.workers) = %d" % len(p.workers))
         for i in range(2):
             p(i)
 
         p.wait()
-        print "p.results: " + `p.results`
+        print("p.results: " + repr(p.results))
     finally:
         p.stop()
-        print "after stop"
+        print("after stop")
 
 def test3():
     def square(i):
@@ -540,25 +540,25 @@ def test3():
     globals()[square.__name__] = square
 
     square = Parallelize([ square ] * 10)
-    print "Allocated children"
+    print("Allocated children")
 
     try:
         for i in range(10):
             square(i)
 
-        print "Queued parallelized invocations. Ctrl-C to abort!"
+        print("Queued parallelized invocations. Ctrl-C to abort!")
         for i, result in enumerate(square.results):
-            print result
+            print(result)
 
-        print "len(iresults) == " + `i + 1`
+        print("len(iresults) == " + repr(i + 1))
 
     finally:
         aborted = square.stop()
         if aborted:
-            print "len(aborted) = %d" % len(aborted)
-            print "len(aborted) + len(results) = %d" % (len(aborted) + len(square.results))
+            print("len(aborted) = %d" % len(aborted))
+            print("len(aborted) + len(results) = %d" % (len(aborted) + len(square.results)))
 
-        print "len(pool.results) = %d" % len(square.results)
+        print("len(pool.results) = %d" % len(square.results))
 
 def test4():
     def square(i):
@@ -573,9 +573,9 @@ def test4():
         for i in range(10):
             square(i)
 
-        print "Queued parallelized invocations. Ctrl-C to abort!"
+        print("Queued parallelized invocations. Ctrl-C to abort!")
         for i, result in enumerate(square.results):
-            print result
+            print(result)
 
 def test5():
 
@@ -592,7 +592,7 @@ def test5():
         for i in range(10):
             square(i)
 
-    print "results: " + `square.results`
+    print("results: " + repr(square.results))
 
 if __name__ == "__main__":
     test5()

@@ -52,15 +52,15 @@ Example usage::
 
     try:
         opts, args = MyCliConf.getopt()
-    except MyCliConf.Error, e:
+    except MyCliConf.Error as e:
         MyCliConf.usage(e)
 
     if not args:
         MyCliConf.usage("not enough arguments")
 
     for opt in opts:
-        print "%s=%s" % (opt.name, opt.val)
-        print `dict(opt)`
+        print("%s=%s" % (opt.name, opt.val))
+        print(repr(dict(opt)))
 """
 
 import os
@@ -79,7 +79,7 @@ class Opt(object):
     Example usage::
 
         print opt.name
-        print `dict(opt)`
+        print repr(dict(opt))
 
     """
 
@@ -211,7 +211,7 @@ class Opts:
 
             if isinstance(attr, Opt):
                 attr = copy.copy(attr)
-            elif isinstance(attr, types.BooleanType):
+            elif isinstance(attr, bool):
                 attr = BoolOpt(default=attr)
             else:
                 attr = Opt(default=attr)
@@ -229,20 +229,20 @@ class Opts:
         if isinstance(attr, Opt):
             return attr
 
-        raise KeyError(`attrname`)
+        raise KeyError(repr(attrname))
 
     def __contains__(self, opt):
         if isinstance(opt, Opt):
             return opt in list(self)
 
-        if isinstance(opt, types.StringType):
+        if isinstance(opt, str):
             attr = getattr(self, opt, None)
             if isinstance(attr, Opt):
                 return True
             return False
 
         raise TypeError("type(%s) not a string or an Opt instance" %
-                        `opt`)
+                        repr(opt))
 
 class Error(Exception):
     pass
@@ -263,7 +263,7 @@ class CliConf:
 
         try:
             opts, args = MyCliConf.getopt()
-        except MyCliConf.Error, e:
+        except MyCliConf.Error as e:
             MyCliConf.usage(e)
 
     """
@@ -293,7 +293,7 @@ class CliConf:
 
         try:
             opts, args = getopt.gnu_getopt(args, shortopts, longopts)
-        except getopt.GetoptError, e:
+        except getopt.GetoptError as e:
             raise Error(e)
 
         for opt, val in opts:
@@ -305,19 +305,18 @@ class CliConf:
     @staticmethod
     def _parse_conf_file(path):
         try:
-            fh = file(path)
+            with open(path) as fh:
+                for line in fh.readlines():
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
 
-            for line in fh.readlines():
-                line = line.strip()
-                if not line or line.startswith("#"):
-                    continue
-
-                try:
-                    name, val = re.split(r'\s+', line, 1)
-                except ValueError:
-                    raise Error("bad line in configuration file: " +
-                                line)
-                yield name, val
+                    try:
+                        name, val = re.split(r'\s+', line, 1)
+                    except ValueError:
+                        raise Error("bad line in configuration file: " +
+                                    line)
+                    yield name, val
         except IOError:
             pass
     
@@ -452,21 +451,21 @@ class CliConf:
     @classmethod
     def usage(cls, err=None):
         if err:
-            print >> sys.stderr, "error: " + str(err)
+            print("error: " + str(err), file=sys.stderr)
 
         if cls.__doc__:
             tpl = string.Template(cls.__doc__)
             buf = tpl.substitute(AV0=os.path.basename(sys.argv[0]))
-            print >> sys.stderr, buf.strip()
+            print(buf.strip(), file=sys.stderr)
 
-        print >> sys.stderr, cls._usage_fmt_order(),
-        print >> sys.stderr, cls._usage_fmt_options(),
+        print(cls._usage_fmt_order(), file=sys.stderr, end='')
+        print(cls._usage_fmt_options(), file=sys.stderr, end='')
 
         if cls.file_path:
             buf = "Configuration file format (%s):\n\n" % cls.file_path
             buf += "  <option-name> <value>\n\n"
 
-            print >> sys.stderr, buf,
+            print(buf, file=sys.stderr, end='')
 
         sys.exit(1)
 
@@ -493,20 +492,19 @@ def test():
 
     try:
         opts, args = TestCliConf.getopt()
-    except TestCliConf.Error, e:
+    except TestCliConf.Error as e:
         TestCliConf.usage(e)
 
     if len(args) != 1:
         TestCliConf.usage("not enough arguments")
 
-    print "--- OPTIONS:"
+    print("--- OPTIONS:")
     pp.pprint([ dict(opt) for opt in opts])
     for opt in opts:
-        print "%s=%s" % (opt.name, opt.val)
+        print("%s=%s" % (opt.name, opt.val))
 
     arg = args[0]
-    print "arg = " + `arg`
+    print("arg = " + repr(arg))
 
 if __name__ == "__main__":
     test()
-

@@ -23,14 +23,15 @@ class HashStore:
         self.path = realpath(path)
 
     def _get_path(self, key):
-        digest = sha1(key).hexdigest()
+        digest = sha1(key.encode('utf-8')).hexdigest()
         return join(self.path, digest[:2], digest[2:])
 
     def get(self, key):
         path = self._get_path(key)
         if not exists(path):
             return None
-        val = file(path).read()
+        with open(path) as f:
+            val = f.read()
         if not val:
             return None
         return val
@@ -41,7 +42,8 @@ class HashStore:
         if not exists(dirname(path)):
             os.makedirs(dirname(path))
 
-        file(path, "w").write(str(value))
+        with open(path, "w") as f:
+            f.write(str(value))
 
     def exists(self, key):
         path = self._get_path(key)
@@ -73,7 +75,7 @@ class HashStore:
             
         return count
 
-    def __nonzero__(self):
+    def __bool__(self):
         return True
 
     def __getitem__(self, key):
@@ -94,12 +96,11 @@ class HashStore:
 def test():
     hs = HashStore("/sterile/tmp/hashstore")
     hs['foo'] = 'bar'
-    print hs['foo']
+    print(hs['foo'])
 
-    print len(hs)
+    print(len(hs))
     del hs['foo']
-    print len(hs)
+    print(len(hs))
              
 if __name__=="__main__":
     test()
-    

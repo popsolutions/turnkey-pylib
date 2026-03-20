@@ -9,7 +9,7 @@ class Locked(Exception):
 def pid_exists(pid):
     try:
         os.kill(pid, 0)
-    except OSError, e:
+    except OSError as e:
         if e.errno == errno.ESRCH:
             return False
 
@@ -27,7 +27,8 @@ class PidLock:
     def lock(self, nonblock=None):
         if exists(self.filename):
             try:
-                pid = int(file(self.filename).read())
+                with open(self.filename) as f:
+                    pid = int(f.read())
                 if not pid_exists(pid):
                     os.remove(self.filename)
             except ValueError:
@@ -39,12 +40,13 @@ class PidLock:
         if nonblock:
             flags = fcntl.LOCK_NB
 
-        self.fh = file(self.filename, "a")
+        self.fh = open(self.filename, "a")
 
         try:
             fcntl.flock(self.fh.fileno(), fcntl.LOCK_EX | flags)
-            file(self.filename, "w").write(`os.getpid()`)
-        except IOError, e:
+            with open(self.filename, "w") as f:
+                f.write(str(os.getpid()))
+        except IOError as e:
             if e.errno == errno.EWOULDBLOCK:
                 raise Locked()
 
@@ -67,7 +69,7 @@ def _test():
     import time
     
     def sleep(n):
-        print "sleeping for %d seconds" % n
+        print("sleeping for %d seconds" % n)
         time.sleep(n)
 
     l = PidLock("lock.lock", nonblock=False)

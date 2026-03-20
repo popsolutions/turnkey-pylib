@@ -37,12 +37,12 @@ class DefaultPath(Paths):
         return cls(path)
 
 paths = BarPaths("/tmp")
-print paths.foo
-print paths.sub_dir
-print paths.sub_dir.sub_file
-print paths.sub_dir2.sub_file2
+print(paths.foo)
+print(paths.sub_dir)
+print(paths.sub_dir.sub_file)
+print(paths.sub_dir2.sub_file2)
 
-print paths.make_relative(paths.sub_dir, paths.sub_dir.sub_file)
+print(paths.make_relative(paths.sub_dir, paths.sub_dir.sub_file))
 
 """
 import re
@@ -95,7 +95,7 @@ class Paths(str):
             self.register(file)
 
     def __getattr__(self, name):
-        if self.files.has_key(name):
+        if name in self.files:
             return join(self.path, self.files[name])
 
         raise AttributeError("no such attribute: " + name)
@@ -106,7 +106,7 @@ class Paths(str):
 
     def listdir(self):
         "Return a list containing the names of the entries in directory"""
-        return self.files.values()
+        return list(self.files.values())
 
     def register(self, filename):
         if '/' in filename:
@@ -133,13 +133,12 @@ def test():
             files = [ "bar" ] + subdir("sub.dir2", ["sub-file2"])
 
     paths = BarPaths("/tmp")
-    print paths.foo
-    print paths.sub_dir
-    print paths.sub_dir.sub_file
-    print paths.sub_dir2.sub_file2
+    print(paths.foo)
+    print(paths.sub_dir)
+    print(paths.sub_dir.sub_file)
+    print(paths.sub_dir2.sub_file2)
 
     return paths
 
 if __name__ == "__main__":
     test()
-

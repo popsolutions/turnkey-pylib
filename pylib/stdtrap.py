@@ -45,7 +45,7 @@ UnitedStdTrap examples with tee to logfile:
     #
     #     tail -f session.log
     #
-    fh = file("session.log", "w")
+    fh = open("session.log", "w")
     trap = UnitedStdTrap(usepty=True, transparent=True, tee=fh)
     try:
         os.system("/bin/bash")
@@ -56,20 +56,20 @@ UnitedStdTrap examples with tee to logfile:
     ## example 2: traps output and writes it to stdout and /tmp/log ##
     
     # also writes intercepted output to /tmp/log
-    logfile = file("/tmp/log", "w")
+    logfile = open("/tmp/log", "w")
     trap = UnitedStdTrap(transparent=True, tee=logfile)
     try:
         os.system("echo hello world")
 
         for i in range(10):
-            print i
+            print(i)
     finally:
         trap.close()
 
     trapped_output = trap.std.read()
     logfile.close()
 
-    assert file("/tmp/log").read() == trapped_output
+    assert open("/tmp/log").read() == trapped_output
 
 """
 
@@ -77,7 +77,7 @@ import os
 import sys
 import pty
 import select
-from StringIO import StringIO
+from io import StringIO
 
 import signal
 
@@ -268,7 +268,7 @@ def set_blocking(fd, block):
     import fcntl
     arg = os.O_NONBLOCK
     if block:
-        arg =~ arg
+        arg = ~arg
     fcntl.fcntl(fd, fcntl.F_SETFL, arg)
 
 class Sink:
@@ -284,7 +284,7 @@ class Sink:
 
     def write(self):
         try:
-            written = os.write(self.fd, self.data)
+            written = os.write(self.fd, self.data.encode())
         except:
             return False
 
@@ -372,34 +372,34 @@ def tests():
             os.system("echo echo stdout")
             os.system("echo echo stderr 1>&2")
 
-        print "--- 1:"
+        print("--- 1:")
         
         s = UnitedStdTrap(transparent=transparent)
-        print "printing to united stdout..."
-        print >> sys.stderr, "printing to united stderr..."
+        print("printing to united stdout...")
+        print("printing to united stderr...", file=sys.stderr)
         sysprint()
         s.close()
 
-        print 'trapped united stdout and stderr: """%s"""' % s.std.read()
-        print >> sys.stderr, "printing to stderr"
+        print('trapped united stdout and stderr: """%s"""' % s.std.read())
+        print("printing to stderr", file=sys.stderr)
 
-        print "--- 2:"
+        print("--- 2:")
         
         s = StdTrap(transparent=transparent)
         s.close()
-        print 'nothing in stdout: """%s"""' % s.stdout.read()
-        print 'nothing in stderr: """%s"""' % s.stderr.read()
+        print('nothing in stdout: """%s"""' % s.stdout.read())
+        print('nothing in stderr: """%s"""' % s.stderr.read())
 
-        print "--- 3:"
+        print("--- 3:")
 
         s = StdTrap(transparent=transparent)
-        print "printing to stdout..."
-        print >> sys.stderr, "printing to stderr..."
+        print("printing to stdout...")
+        print("printing to stderr...", file=sys.stderr)
         sysprint()
         s.close()
 
-        print 'trapped stdout: """%s"""' % s.stdout.read()
-        print >> sys.stderr, 'trapped stderr: """%s"""' % s.stderr.read()
+        print('trapped stdout: """%s"""' % s.stdout.read())
+        print('trapped stderr: """%s"""' % s.stderr.read(), file=sys.stderr)
 
 
     def test2():
@@ -407,9 +407,9 @@ def tests():
 
         try:
             for i in range(1000):
-                print "A" * 70
+                print("A" * 70)
                 sys.stdout.flush()
-                print >> sys.stderr, "B" * 70
+                print("B" * 70, file=sys.stderr)
                 sys.stderr.flush()
                 
         finally:
@@ -422,58 +422,58 @@ def tests():
         trap = UnitedStdTrap(transparent=True)
         try:
             for i in range(10):
-                print "A" * 70
+                print("A" * 70)
                 sys.stdout.flush()
-                print >> sys.stderr, "B" * 70
+                print("B" * 70, file=sys.stderr)
                 sys.stderr.flush()
         finally:
             trap.close()
 
-        print len(trap.stdout.read())
+        print(len(trap.stdout.read()))
 
     def test4():
         import time
         s = StdTrap(transparent=True)
         s.close()
-        print 'nothing in stdout: """%s"""' % s.stdout.read()
-        print 'nothing in stderr: """%s"""' % s.stderr.read()
+        print('nothing in stdout: """%s"""' % s.stdout.read())
+        print('nothing in stderr: """%s"""' % s.stderr.read())
 
     def test_tee():
-        logfile = file("/tmp/log", "w")
+        logfile = open("/tmp/log", "w")
 
         trap = StdTrap(transparent=True, stdout_tee=logfile)
         try:
             os.system("echo hello world")
             for i in range(10):
-                print i
+                print(i)
         finally:
             trap.close()
 
         trapped_output = trap.stdout.read()
         logfile.close()
 
-        assert file("/tmp/log").read() == trapped_output
+        assert open("/tmp/log").read() == trapped_output
 
     def test_united_tee():
-        logfile = file("/tmp/log", "w")
+        logfile = open("/tmp/log", "w")
 
         trap = UnitedStdTrap(transparent=True, tee=logfile)
         try:
             os.system("echo hello world")
             for i in range(10):
-                print i
+                print(i)
         finally:
             trap.close()
 
         trapped_output = trap.std.read()
         logfile.close()
 
-        assert file("/tmp/log").read() == trapped_output
+        assert open("/tmp/log").read() == trapped_output
 
     test(False)
-    print
-    print "=== TRANSPARENT MODE ==="
-    print
+    print()
+    print("=== TRANSPARENT MODE ===")
+    print()
     test(True)
     test2()
     test_united_tee()
@@ -481,9 +481,9 @@ def tests():
 
 def usage(e=None):
     if e:
-        print >> sys.stderr, "error: " + str(e)
+        print("error: " + str(e), file=sys.stderr)
 
-    print >> sys.stderr, """\
+    print("""\
 python stdtrap.py [ -options ] path/to/file [ command ]
 python stdtrap.py [ -options ] "|shell command" [ command ]
 
@@ -504,18 +504,18 @@ Example::
 
     # does the same thing as "ls -la / > /tmp/ls.log"
     python stdtrap.py --quiet /tmp/ls.log -- ls -la /
-    """
+    """, file=sys.stderr)
 
     sys.exit(1)
 
 def main():
     import getopt
-    import commands
+    import shlex
 
     args = sys.argv[1:]
     try:
         opts, args = getopt.gnu_getopt(args, 'qph', [ "quiet", "pty", "help" ])
-    except getopt.GetoptError, e:
+    except getopt.GetoptError as e:
         usage(e)
 
     opt_quiet = False
@@ -543,12 +543,12 @@ def main():
         output_fh = p.stdin
 
     else:
-        output_fh = file(output, 'w')
+        output_fh = open(output, 'w')
     
     command = args if args else [ os.environ.get('SHELL', '/bin/bash') ]
     trap = UnitedStdTrap(usepty=opt_pty, transparent=not opt_quiet, tee=output_fh)
     try:
-        os.system(command[0] + " ".join(commands.mkarg(arg) for arg in command[1:]))
+        os.system(command[0] + " " + " ".join(shlex.quote(arg) for arg in command[1:]))
     finally:
         trap.close()
         output_fh.close()

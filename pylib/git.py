@@ -13,7 +13,7 @@ from os.path import *
 import subprocess
 from subprocess import PIPE
 
-import commands
+import shlex
 import re
 
 from executil import *
@@ -47,14 +47,14 @@ def setup(method):
                     return arg
 
             if isinstance(arg, (list, tuple)):
-                return map(make_relative, arg)
+                return list(map(make_relative, arg))
 
             try:
                 return self.make_relative(arg)
             except self.Error:
                 return arg
 
-        args = map(make_relative, args)
+        args = list(map(make_relative, args))
 
         try:
             ret = method(self, *args, **kws)
@@ -90,13 +90,13 @@ class Git(object):
         def __get__(self, obj, type):
             path = self.get_path(obj)
             if exists(path):
-                return file(path, "r").read()
+                return open(path, "r").read()
 
             return None
 
         def __set__(self, obj, val):
             path = self.get_path(obj)
-            file(path, "w").write(val)
+            open(path, "w").write(val)
 
     MERGE_MSG = MergeMsg()
 
@@ -111,7 +111,7 @@ class Git(object):
         def __set__(self, obj, val):
             path = self.get_path(obj)
             if val:
-                file(path, "w").close()
+                open(path, "w").close()
             else:
                 if exists(path):
                     os.remove(path)
@@ -127,7 +127,7 @@ class Git(object):
         if not bare:
             init_path = join(init_path, ".git")
 
-        command = "git --git-dir %s init" % commands.mkarg(init_path)
+        command = "git --git-dir %s init" % shlex.quote(init_path)
         if not verbose:
             command += " > /dev/null"
 
@@ -165,7 +165,7 @@ class Git(object):
     def _system(self, command, *args):
         try:
             system("git " + command, *args)
-        except ExecError, e:
+        except ExecError as e:
             raise self.Error(e)
 
     def read_tree(self, *opts):
@@ -183,7 +183,7 @@ class Git(object):
     @setup
     def update_index_all(self):
         """update all files that need update according to git update-index --refresh"""
-        err, output = commands.getstatusoutput("git update-index --refresh")
+        err, output = subprocess.getstatusoutput("git update-index --refresh")
         if not err:
             return
         output.split('\n')
@@ -261,14 +261,14 @@ class Git(object):
 
         try:
             self._system(command, *args)
-        except self.Error, e:
-            return e[0].exitcode
+        except self.Error as e:
+            return e.args[0].exitcode
 
     @setup
     def _getoutput(self, command, *args):
         try:
             output = getoutput("git " + command, *args)
-        except ExecError, e:
+        except ExecError as e:
             raise self.Error(e)
         return output
 
@@ -346,7 +346,7 @@ class Git(object):
         p = subprocess.Popen(command, stdout=PIPE, stderr=PIPE)
 
         stdout, stderr = p.communicate()
-        return stdout.splitlines()
+        return stdout.decode('utf-8').splitlines()
 
     @setup
     def commit_tree(self, id, log, parents=None):
@@ -362,16 +362,16 @@ class Git(object):
 
         p = subprocess.Popen(args, stdin=PIPE, stdout=PIPE, stderr=PIPE)
         try:
-            p.stdin.write(log)
+            p.stdin.write(log.encode('utf-8'))
             p.stdin.close()
         except IOError:
             pass
 
         err = p.wait()
         if err:
-            raise self.Error("git commit-tree failed: " + p.stderr.read())
+            raise self.Error("git commit-tree failed: " + p.stderr.read().decode('utf-8'))
 
-        return p.stdout.read().strip()
+        return p.stdout.read().decode('utf-8').strip()
 
     def mktree_empty(self):
         """return an empty tree id which is needed for some comparisons"""
@@ -385,9 +385,9 @@ class Git(object):
 
         err = p.wait()
         if err:
-            raise self.Error("git mktree failed: " + p.stderr.read())
+            raise self.Error("git mktree failed: " + p.stderr.read().decode('utf-8'))
 
-        return p.stdout.read().strip()
+        return p.stdout.read().decode('utf-8').strip()
 
     @setup
     def log(self, *args):
@@ -459,7 +459,7 @@ class Git(object):
 
         try:
             output = self._getoutput(command)
-        except self.Error, e:
+        except self.Error as e:
             e = e.args[0]
             if e.output == '':
                 return []
@@ -493,18 +493,15 @@ class Git(object):
     def set_alternates(self, git):
         """set alternates path to point to the objects path of the specified git object"""
 
-        fh = file(join(self.gitdir, "objects/info/alternates"), "w")
-        print >> fh, join(git.gitdir, "objects")
-        fh.close()
+        with open(join(self.gitdir, "objects/info/alternates"), "w") as fh:
+            print(join(git.gitdir, "objects"), file=fh)
 
     @staticmethod
     def set_gitignore(path, lines):
-        fh = file(join(path, ".gitignore"), "w")
-        for line in lines:
-            print >> fh, line
+        with open(join(path, ".gitignore"), "w") as fh:
+            for line in lines:
+                print(line, file=fh)
 
     @staticmethod
     def anchor(path):
-        fh = file(join(path, ".anchor"), "w")
-        fh.close()
-
+        open(join(path, ".anchor"), "w").close()

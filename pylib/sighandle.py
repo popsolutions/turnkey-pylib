@@ -60,7 +60,7 @@ class sigignore(sighandle):
 def test():
     import time
     def handler(sig, frame):
-        print "caught sig %d" % sig
+        print("caught sig %d" % sig)
 
     @sigignore(signal.SIGINT)
     def sleep(seconds):
@@ -68,18 +68,18 @@ def test():
 
     signal.signal(signal.SIGINT, handler)
 
-    print "before decorated sleep(3) (ignoring Ctrl-C)"
+    print("before decorated sleep(3) (ignoring Ctrl-C)")
     sleep(3)
-    print "after sleep"
+    print("after sleep")
 
     with sigignore(signal.SIGINT):
-        print "inside sigignore with statement, before time.sleep(3)"
+        print("inside sigignore with statement, before time.sleep(3)")
         time.sleep(3)
-        print "after sleep"
+        print("after sleep")
 
-    print "before time.sleep(5)"
+    print("before time.sleep(5)")
     time.sleep(10)
-    print "after sleep"
+    print("after sleep")
 
 if __name__ == "__main__":
-    test2()
+    test()

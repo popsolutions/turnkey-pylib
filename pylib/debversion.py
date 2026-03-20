@@ -87,7 +87,7 @@ def _lexcmp(a, b):
             if not a[i].isalpha():
                 return 1
 
-        val = cmp(a[i], b[i])
+        val = (a[i] > b[i]) - (a[i] < b[i])
         if val != 0:
             return val
 
@@ -113,7 +113,7 @@ def _compare(s1, s2):
         n1 = p1.getnum()
         n2 = p2.getnum()
         
-        val = cmp(n1, n2)
+        val = (n1 > n2) - (n1 < n2)
         if val != 0:
             return val
 
@@ -183,7 +183,7 @@ def _compare_flat(s1, s2):
         else:
             n2 = 0
 
-        val = cmp(n1, n2)
+        val = (n1 > n2) - (n1 < n2)
         if val != 0:
             return val
 
@@ -212,13 +212,13 @@ def test():
     import time
     howmany = 10000
     start = time.time()
-    for i in xrange(howmany):
+    for i in range(howmany):
         compare("0-2007.10.1-d6cbb928", "0-2007.10.10-a9ee521c")
     end = time.time()
     elapsed = end - start
 
-    print "%d runs in %.4f seconds (%.2f per/sec)" % (howmany, elapsed,
-                                                      howmany / elapsed)
+    print("%d runs in %.4f seconds (%.2f per/sec)" % (howmany, elapsed,
+                                                      howmany / elapsed))
 
 if __name__ == "__main__":
     test()

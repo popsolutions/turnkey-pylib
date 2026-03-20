@@ -73,7 +73,6 @@ SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 
 """
 
-import new
 import types
 
 class ReturnNone:
@@ -95,7 +94,7 @@ def _class_metahooker(hook_methods, hook_classmethods, hook_staticmethods):
     """makes a deeply magical MetaHooker metaclass."""
     class MetaHooker(type):
         def __init__(cls, name, bases, dct):
-            type.__init__(name, bases, dct)
+            type.__init__(cls, name, bases, dct)
 
             if issubclass(cls, _ApplyMetaHooker):
                 for attrname in dir(cls):
@@ -116,16 +115,14 @@ def _class_metahooker(hook_methods, hook_classmethods, hook_staticmethods):
 
                 # static method is only simulated (unbound_method does not pass cls as first argument)
                 # (workaround for setattr() transforming functions into MethodType)
-                return new.instancemethod(unbound_method,
-                                          cls, cls) 
+                return types.MethodType(unbound_method, cls)
 
-            if attr.im_self: # @classmethod
+            if hasattr(attr, '__self__') and attr.__self__: # @classmethod
                 if hook_classmethods is False:
                     return attr
 
                 # rebind the new method to the class
-                return new.instancemethod(unbound_method,
-                                          attr.im_self, attr.im_class)
+                return types.MethodType(unbound_method, attr.__self__)
 
             if hook_methods is False:
                 return attr
@@ -139,7 +136,7 @@ def _class_metahooker(hook_methods, hook_classmethods, hook_staticmethods):
                     im = hook_instance
 
                 args = list(args) 
-	        shorted = hook_instance._hook.pre(im, attr, args, kws)
+                shorted = hook_instance._hook.pre(im, attr, args, kws)
                 if shorted: # I.e., shorted circuit
                     if shorted is ReturnNone:
                         return None
@@ -147,10 +144,10 @@ def _class_metahooker(hook_methods, hook_classmethods, hook_staticmethods):
 
                 try:
                     if type(attr) is types.MethodType:
-                        result = attr.im_func(hook_instance, *args, **kws)
+                        result = attr.__func__(hook_instance, *args, **kws)
                     else:
                         result = attr(*args, **kws)
-                except Exception, e:
+                except Exception as e:
                     shorted = hook_instance._hook.exception(im, attr, e)
                     if shorted:
                         if shorted is ReturnNone:
@@ -251,8 +248,7 @@ def class_hooked(methods=True, classmethods=True, staticmethods=True):
     class methods.
 
     """
-    class Hooked(_ApplyMetaHooker):
-        __metaclass__ = _class_metahooker(methods, classmethods, staticmethods)
+    class Hooked(_ApplyMetaHooker, metaclass=_class_metahooker(methods, classmethods, staticmethods)):
         _hook = HookInterface()
 
     return Hooked
@@ -264,37 +260,37 @@ class HookPrint(object):
     useful for debugging"""
     def pre(self, im, called, args, kws):
         "called right before the method is called with its arguments"
-        print "_hook.pre(im=%s, name=%s,args=%s,kws=%s)" % (`im`, `called.__name__`, `args`, `kws`)
+        print("_hook.pre(im=%s, name=%s,args=%s,kws=%s)" % (repr(im), repr(called.__name__), repr(args), repr(kws)))
 
     def post(self, im, called, result):
         "called right after the method has returned with its result"
-        print "_hook.post(im=%s, name=%s,result=%s)" % (`im`, `called.__name__`, `result`)
+        print("_hook.post(im=%s, name=%s,result=%s)" % (repr(im), repr(called.__name__), repr(result)))
 
     def exception(self, im, called, e):
         "called right after the method has raised an exception"
-        print "_hook.exception(im=%s, name=%s,e=%s)" % (`im`, `called.__name__`, `e`)
+        print("_hook.exception(im=%s, name=%s,e=%s)" % (repr(im), repr(called.__name__), repr(e)))
 
 def _test():
-    print "NOTICE: creating globals ClassOrig, ClassHooked"
+    print("NOTICE: creating globals ClassOrig, ClassHooked")
     global ClassOrig
     global ClassHooked
 
     class ClassBase(object):
         def __init__(self, *args):
-            print  "ClassBase __init__ args: " + `args`
+            print("ClassBase __init__ args: " + repr(args))
 
         @classmethod
         def bcm(*args):
-            print "bcm args: " + `args`
+            print("bcm args: " + repr(args))
             return 111
 
         @staticmethod
         def bsm(*args):
-            print "bsm args: " + `args`
+            print("bsm args: " + repr(args))
             return 111
 
         def bm(*args):
-            print "bm args: " + `args`
+            print("bm args: " + repr(args))
             return 111
 
     class ClassOrig(ClassBase):
@@ -303,16 +299,16 @@ def _test():
 
         @classmethod
         def cm(*args):
-            print "cm args: " + `args`
+            print("cm args: " + repr(args))
             return 111
 
         @staticmethod
         def sm(*args):
-            print "sm args: " + `args`
+            print("sm args: " + repr(args))
             return 111
 
         def m(*args):
-            print "m args: " + `args`
+            print("m args: " + repr(args))
             return 111
 
         def e(*args):
@@ -357,125 +353,125 @@ def _test():
 
         @classmethod
         def cm(*args):
-            print "cm args: " + `args`
+            print("cm args: " + repr(args))
             return 111
 
         @staticmethod
         def sm(*args):
-            print "sm args: " + `args`
+            print("sm args: " + repr(args))
             return 111
 
         def m(*args):
-            print "m args: " + `args`
+            print("m args: " + repr(args))
             return 111
 
         def e(*args):
             raise Exception("argh!")
 
     def exercise_co():
-        print "=== exercising ClassOrig"
+        print("=== exercising ClassOrig")
         
-        print "testing: ClassOrig.bsm() # base staticmethod"
+        print("testing: ClassOrig.bsm() # base staticmethod")
         result = ClassOrig.bsm()
-        print result
-        print
+        print(result)
+        print()
 
-        print "testing: ClassOrig.bcm() # base classmethod"
+        print("testing: ClassOrig.bcm() # base classmethod")
         result = ClassOrig.bcm()
-        print result
-        print
+        print(result)
+        print()
         
-        print "testing: ClassOrig.sm() # staticmethod"
+        print("testing: ClassOrig.sm() # staticmethod")
         result = ClassOrig.sm()
-        print result
-        print
+        print(result)
+        print()
 
-        print "testing: ClassOrig.cm() # classmethod"
+        print("testing: ClassOrig.cm() # classmethod")
         result = ClassOrig.cm()
-        print result
-        print
+        print(result)
+        print()
 
-        print "testing: co = ClassOrig()"
+        print("testing: co = ClassOrig()")
         co = ClassOrig()
 
-        print "testing: co.sm() # staticmethod"
+        print("testing: co.sm() # staticmethod")
         result = co.sm()
-        print result
-        print
+        print(result)
+        print()
 
-        print "testing: co.cm() # classmethod"
+        print("testing: co.cm() # classmethod")
         result = co.cm()
-        print result
-        print
+        print(result)
+        print()
 
-        print "testing: co.m() # method"
+        print("testing: co.m() # method")
         result = co.m()
-        print result
-        print
+        print(result)
+        print()
 
         try:
-            print "testing co.e() # method raises an exception"
+            print("testing co.e() # method raises an exception")
             result= co.e()
-            print result
-        except Exception, e:
-            print "caught exception: repr=%s str=%s" % (`e`, str(e))
+            print(result)
+        except Exception as e:
+            print("caught exception: repr=%s str=%s" % (repr(e), str(e)))
         
-        print
+        print()
 
     def exercise_ch():
-        print "=== exercising ClassHooked"
+        print("=== exercising ClassHooked")
         
-        print "testing: ClassHooked.bsm() # base staticmethod"
+        print("testing: ClassHooked.bsm() # base staticmethod")
         result = ClassHooked.bsm()
-        print result
-        print
+        print(result)
+        print()
 
-        print "testing: ClassHooked.bcm() # base classmethod"
+        print("testing: ClassHooked.bcm() # base classmethod")
         result = ClassHooked.bcm()
-        print result
-        print
+        print(result)
+        print()
         
-        print "testing: ClassHooked.sm() # staticmethod"
+        print("testing: ClassHooked.sm() # staticmethod")
         result = ClassHooked.sm()
-        print result
-        print
+        print(result)
+        print()
 
-        print "testing: ClassHooked.cm() # classmethod"
+        print("testing: ClassHooked.cm() # classmethod")
         result = ClassHooked.cm()
-        print result
-        print
+        print(result)
+        print()
 
-        print "testing: ch = ClassHooked()"
+        print("testing: ch = ClassHooked()")
         ch = ClassHooked()
 
-        print "testing: ch.sm() # staticmethod"
+        print("testing: ch.sm() # staticmethod")
         result = ch.sm()
-        print result
-        print
+        print(result)
+        print()
 
-        print "testing: ch.cm() # classmethod"
+        print("testing: ch.cm() # classmethod")
         result = ch.cm()
-        print result
-        print
+        print(result)
+        print()
 
-        print "testing: ch.m() # method"
+        print("testing: ch.m() # method")
         result = ch.m()
-        print result
-        print
+        print(result)
+        print()
 
         try:
-            print "testing ch.e() # method raises an exception"
+            print("testing ch.e() # method raises an exception")
             result= ch.e()
-            print result
-        except Exception, e:
-            print "caught exception: repr=%s str=%s" % (`e`, str(e))
+            print(result)
+        except Exception as e:
+            print("caught exception: repr=%s str=%s" % (repr(e), str(e)))
 
-        print
+        print()
 
     exercise_co()
     exercise_ch()
     
-    print "NOTICE: creating globals co and ch"
+    print("NOTICE: creating globals co and ch")
     # for convenience
     global co
     co = ClassOrig()
@@ -485,15 +481,3 @@ def _test():
 
 if __name__ == '__main__':
     _test()
-
-
-
-
-
-
-
-
-
-
-
-

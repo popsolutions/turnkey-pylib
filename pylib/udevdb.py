@@ -61,20 +61,19 @@ def _disk_devices():
     """debug/test method to print disk devices"""
     devices = query()
     for dev in devices:
-        if dev.env.has_key('DEVTYPE') and dev.env['DEVTYPE'] == 'disk':
-            print '/dev/' + dev.name
+        if 'DEVTYPE' in dev.env and dev.env['DEVTYPE'] == 'disk':
+            print('/dev/' + dev.name)
 
-            attrs = dev.env.keys()
+            attrs = list(dev.env.keys())
             attrs.sort()
             column_len = max([ len(attr) + 1 for attr in attrs ])
             for attr in attrs:
                 name = attr + ":"
-                print "  %s %s" % (name.ljust(column_len), dev.env[attr])
-            print
+                print("  %s %s" % (name.ljust(column_len), dev.env[attr]))
+            print()
 
 def main():
    _disk_devices()    #used in debugging/testing
 
 if __name__ == '__main__':
     main()
-

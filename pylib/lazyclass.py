@@ -24,12 +24,12 @@ Usage:
 
     class A:
         def __init__(self, a):
-            print 'A(%s)' % a
+            print('A(%s)' % a)
             self.a = a
 
     # initialized immediately
     a = A(111)
-    print a.a
+    print(a.a)
 
     LazyA = lazyclass(A)
 
@@ -37,7 +37,7 @@ Usage:
     a = LazyA(111)
 
     # initialized now (first attribute access)
-    print a.a
+    print(a.a)
 
 """
 
@@ -84,7 +84,7 @@ def test():
         def __init__(self, name):
             self.name = name
 
-            print "initializing Name(%s)" % name
+            print("initializing Name(%s)" % name)
 
         def val(self):
             return self.name
@@ -94,19 +94,19 @@ def test():
 
     LazyName = lazyclass(Name)
 
-    print "before regular initialization"
+    print("before regular initialization")
     n = Name("notlazy")
-    print "after regular initialization"
+    print("after regular initialization")
 
-    print "n.name = " + n.name
+    print("n.name = " + n.name)
 
-    print "----------"
+    print("----------")
 
-    print "before lazy initialization"
+    print("before lazy initialization")
     ln = LazyName("lazy")
-    print "after lazy initialization"
+    print("after lazy initialization")
 
-    print "ln.name = " + ln.name
+    print("ln.name = " + ln.name)
 
     return ln
 

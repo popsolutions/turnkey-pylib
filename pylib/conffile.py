@@ -49,7 +49,7 @@ class ConfFile(dict):
         """
         self.REQUIRED.extend(required)
         for attr in self.REQUIRED:
-            if not self.has_key(attr):
+            if attr not in self:
                 error = "%s not specified in %s" % (attr.upper(), self.CONF_FILE)
                 raise ConfFileError(error)
 
@@ -62,23 +62,22 @@ class ConfFile(dict):
         if not self.CONF_FILE or not os.path.exists(self.CONF_FILE):
             return 
 
-        for line in file(self.CONF_FILE).readlines():
-            line = line.rstrip()
+        with open(self.CONF_FILE) as f:
+            for line in f.readlines():
+                line = line.rstrip()
 
-            if not line or line.startswith("#"):
-                continue
+                if not line or line.startswith("#"):
+                    continue
 
-            key, val = line.split("=")
-            self[key.strip().lower()] = val.strip()
+                key, val = line.split("=")
+                self[key.strip().lower()] = val.strip()
 
     def write(self):
-        fh = file(self.CONF_FILE, "w")
-        items = self.items()
-        items.sort()
-        for key, val in items:
-            print >> fh, "%s=%s" % (key.upper(), val)
-
-        fh.close()
+        with open(self.CONF_FILE, "w") as fh:
+            items = list(self.items())
+            items.sort()
+            for key, val in items:
+                print("%s=%s" % (key.upper(), val), file=fh)
 
     def items(self):
         items = []
@@ -90,9 +89,8 @@ class ConfFile(dict):
     def __getattr__(self, key):
         try:
             return self[key]
-        except KeyError, e:
+        except KeyError as e:
             raise AttributeError(e)
 
     def __setattr__(self, key, val):
         self[key] = val
-
