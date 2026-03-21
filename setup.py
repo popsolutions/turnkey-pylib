@@ -2,7 +2,7 @@
 
 import re
 import os.path
-import commands
+import subprocess
 
 from distutils.core import setup
 
