@@ -12,7 +12,7 @@ class ExecError(Exception):
 
 
 def _getoutput(command):
-    status, output = commands.getstatusoutput(command)
+    status, output = subprocess.getstatusoutput(command)
     if status != 0:
         raise ExecError()
     return output
@@ -56,7 +56,7 @@ def parse_email(email):
 
 
 def main():
-    control_fields = parse_control(file("debian/control").read())
+    control_fields = parse_control(open("debian/control").read())
     maintainer = control_fields['Maintainer']
     maintainer_name, maintainer_email = parse_email(maintainer)
 

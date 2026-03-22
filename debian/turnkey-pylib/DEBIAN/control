@@ -1,0 +1,9 @@
+Package: turnkey-pylib
+Version: 0.7.2
+Architecture: all
+Maintainer: Alon Swartz <alon@turnkeylinux.org>
+Installed-Size: 205
+Depends: python3:any (>= 3.11~)
+Section: python
+Priority: optional
+Description: TurnKey GNU/Linux standard Python library

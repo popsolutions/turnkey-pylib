@@ -1,0 +1,9 @@
+Metadata-Version: 2.4
+Name: turnkey-pylib
+Version: 0.7.2
+Summary: TurnKey GNU/Linux standard Python library
+Maintainer: Alon Swartz
+Maintainer-email: alon@turnkeylinux.org
+Dynamic: maintainer
+Dynamic: maintainer-email
+Dynamic: summary
